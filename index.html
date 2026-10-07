@@ -133,6 +133,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
+            margin-bottom: 32px;
         }
 
         .card {
@@ -192,6 +193,101 @@
             color: var(--success-color);
             width: fit-content;
         }
+
+        /* Notes & Files Section */
+        .notes-header {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-list {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .file-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 12px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .file-btn:hover {
+            border-color: var(--accent-color);
+            background-color: #26334d;
+        }
+
+        /* Full Width Note Reader */
+        .note-reader {
+            display: none;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            margin-top: 16px;
+            line-height: 1.7;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .note-reader h1, .note-reader h2, .note-reader h3 {
+            color: var(--accent-color);
+            margin-top: 16px;
+            margin-bottom: 12px;
+        }
+
+        .note-reader code {
+            background-color: var(--code-bg);
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: #38bdf8;
+            font-family: monospace;
+        }
+
+        .note-reader table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .note-reader th, .note-reader td {
+            border: 1px solid var(--border-color);
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        .note-reader th {
+            background-color: var(--code-bg);
+            color: var(--accent-color);
+        }
+
+        .close-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            float: right;
+            font-size: 0.85rem;
+        }
+
+        .close-btn:hover {
+            background: #475569;
+        }
     </style>
 </head>
 <body>
@@ -230,6 +326,7 @@
             <h1 class="section-title">Модуль 1: Основы Git</h1>
             <p class="section-subtitle">Базовые команды инициализации, индексации и коммитов</p>
 
+            <!-- Command Cards Grid -->
             <div class="grid">
                 <div class="card">
                     <div class="card-title">Инициализация</div>
@@ -257,6 +354,20 @@
                         <button class="copy-btn" onclick="copyCmd('git commit -m &quot;feat: text&quot;')">📋</button>
                     </div>
                 </div>
+            </div>
+
+            <!-- Notes / Files Hub -->
+            <div class="notes-header">📁 Конспекты и заметки модуля</div>
+            <div class="file-list">
+                <button class="file-btn" onclick="openNote('01-git-basics.md', 'git-basics-reader', 'git-basics-content')">
+                    📄 01-git-basics.md
+                </button>
+            </div>
+
+            <!-- Full-width Note Reader Box -->
+            <div id="git-basics-reader" class="note-reader">
+                <button class="close-btn" onclick="closeNote('git-basics-reader')">✖ Закрыть</button>
+                <div id="git-basics-content">Загрузка файла...</div>
             </div>
         </section>
 
@@ -295,7 +406,7 @@
             </div>
         </section>
 
-        <!-- Section 3: Docker (Планы) -->
+        <!-- Section 3: Docker -->
         <section id="docker-lab" class="module-section">
             <h1 class="section-title">Модуль 3: Docker & Nextcloud</h1>
             <p class="section-subtitle">Следующий этап роадмапа: разворачивание контейнеров</p>
@@ -309,6 +420,9 @@
         </section>
     </main>
 
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <script>
         function switchTab(tabId) {
             document.querySelectorAll('.module-section').forEach(sec => sec.classList.remove('active'));
@@ -321,6 +435,27 @@
         function copyCmd(text) {
             navigator.clipboard.writeText(text);
             alert('Команда скопирована: ' + text);
+        }
+
+        async function openNote(fileName, readerId, contentId) {
+            const reader = document.getElementById(readerId);
+            const content = document.getElementById(contentId);
+            
+            reader.style.display = 'block';
+            content.innerHTML = 'Загрузка конспекта...';
+
+            try {
+                const response = await fetch(`notes/${fileName}`);
+                if (!response.ok) throw new Error('Файл не найден');
+                const text = await response.text();
+                content.innerHTML = marked.parse(text);
+            } catch (err) {
+                content.innerHTML = `<p style="color: #ef4444;">Ошибка: ${err.message}. Убедитесь, что запускаете через Live Server.</p>`;
+            }
+        }
+
+        function closeNote(readerId) {
+            document.getElementById(readerId).style.display = 'none';
         }
 
         function filterCards() {
